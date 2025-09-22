@@ -2,15 +2,13 @@
 """
 gfc_proxy.py
 
-This script discovers national stock market indices from Stooq, downloads their
+This script reads a predefined list of stock market indices, downloads their
 price history, and constructs daily and monthly proxies for the Global Financial
 Cycle (GFC) using Principal Component Analysis (PCA).
 
 It then compares these proxies against an official GFC factor, calculates
 goodness-of-fit statistics, and generates a comparison chart. The outputs (data
 and chart) are saved locally.
-
-This script is designed to be run automatically, for instance, via a GitHub Action.
 """
 
 import os
@@ -27,55 +25,38 @@ from pandas_datareader import data as pdr
 CONFIG = {
     "START_DATE": "2000-01-01",
     "MIN_START_YEAR": 2005,
-    "MIN_COUNTRIES": 15,
     "ROLLING_WINDOW_DAILY": 21,  # Business days in a month for smoothing
     "OFFICIAL_GFC_URL": "https://www.dropbox.com/scl/fi/a1iqkelgv9yzlfdmwyqcn/GFC-Factor-Updates-2024.xlsx?rlkey=4hrbknfue1q1l8y7hntffj008&st=o1scqels&dl=1",
     "CHART_OUTPUT_PATH": "chart/gfc_comparison_plot.png",
     "DAILY_DATA_OUTPUT_PATH": "data/gfc_proxy_daily.csv",
     "MONTHLY_DATA_OUTPUT_PATH": "data/gfc_proxies_monthly.csv",
+    "INDICES_FILE_PATH": "indices_list.txt",
 }
 
-def discover_indices() -> pd.DataFrame:
-    """Scrapes Stooq to find candidate country indices."""
-    print("Discovering country indices from Stooq...")
-    urls = ["https://stooq.com/t/?i=510", "https://stooq.com/t/?f=1&i=510&u=1&v=6", "https://stooq.com/t/?f=1&i=510&n=1&u=1&v=0"]
-    tables = [tbl for url in urls for tbl in pd.read_html(url, header=0, flavor="lxml")]
-
-    candidates_df = (
-        pd.concat([t.iloc[:, :2].rename(columns={t.columns[0]: "symbol", t.columns[1]: "name"}) for t in tables if t.shape[1] >= 2])
-        .dropna().astype(str)
-        .drop_duplicates(subset="symbol")
-    )
-
-    bad_patterns = r"FUTURE|MSCI|STOXX|SECTOR|VOLATILITY|COMMOD|ETF|WORLD|EUROPE|ASIA|GLOBAL|EMERGING"
-    candidates_df = candidates_df[~candidates_df['name'].str.contains(bad_patterns, case=False)]
-    candidates_df = candidates_df[~candidates_df['symbol'].str.contains(r"^\.|\.F$", case=False)]
-
-    candidates_df['country'] = candidates_df['name'].str.split(' - ').str[-1].str.replace(r'\(.*\)', '', regex=True).str.strip()
-    candidates_df = candidates_df.dropna(subset=['country'])
-    print(f"Found {len(candidates_df)} potential candidates.")
-    return candidates_df
-
 def download_data(candidates: pd.DataFrame) -> pd.DataFrame:
-    """Downloads time series for the best index per country."""
+    """Downloads time series for each index in the provided DataFrame."""
     print("\nDownloading data using pandas-datareader...")
     selected_series = {}
-    for _, row in candidates.sample(frac=1).iterrows():
+    for _, row in candidates.iterrows():
         country, symbol = row['country'], row['symbol']
-        if country in selected_series:
-            continue
         try:
             series = pdr.get_data_stooq(symbol, start=CONFIG["START_DATE"])['Close']
             if not series.empty and series.index.min().year <= CONFIG["MIN_START_YEAR"]:
                 selected_series[country] = series.sort_index()
-                print(f"  + Selected '{symbol}' for {country}")
+                print(f"  + Downloaded '{symbol}' for {country}")
+            else:
+                print(f"  - Skipped '{symbol}' (insufficient history)")
         except Exception:
+            print(f"  - Failed to download '{symbol}'")
             continue
 
     if not selected_series:
-        raise SystemExit("Could not download any valid time series.")
+        raise SystemExit("Could not download any valid time series from the list.")
     
-    return pd.concat(selected_series, axis=1).ffill()
+    # Filter out any countries that didn't download successfully
+    final_panel = pd.concat(selected_series, axis=1).ffill()
+    print(f"\nSuccessfully created a panel with {final_panel.shape[1]} country indices.")
+    return final_panel
 
 def calculate_gfc_proxy(returns_panel: pd.DataFrame) -> (pd.Series, float):
     """Calculates the GFC proxy (PC1) from a panel of returns."""
@@ -139,10 +120,16 @@ def analyze_plot_and_save(gfc_z_daily: pd.Series, gfc_z_monthly: pd.Series):
     print(f"Daily data saved to: {CONFIG['DAILY_DATA_OUTPUT_PATH']}")
     print(f"Monthly data saved to: {CONFIG['MONTHLY_DATA_OUTPUT_PATH']}")
 
-
 def main():
     """Main execution pipeline."""
-    candidates = discover_indices()
+    # Read the static list of indices from the text file
+    print(f"Reading index list from {CONFIG['INDICES_FILE_PATH']}...")
+    try:
+        candidates = pd.read_csv(CONFIG['INDICES_FILE_PATH'], names=['symbol', 'country'])
+    except FileNotFoundError:
+        print(f"Error: {CONFIG['INDICES_FILE_PATH']} not found. Please create it.")
+        return
+        
     price_panel = download_data(candidates)
 
     # Calculate MONTHLY proxy

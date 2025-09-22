@@ -1,10 +1,12 @@
 name: Update GFC Proxy Data and Chart
 
 on:
-  workflow_dispatch: # Allows manual triggering from the Actions tab
+  workflow_dispatch: 
   schedule:
     - cron: '0 8 * * 1' # Runs at 8:00 AM UTC every Monday
-
+permissions:
+  contents: write
+  
 jobs:
   update-gfc:
     runs-on: ubuntu-latest
@@ -15,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # Specify your python version
+          python-version: '3.11' # 
 
       - name: Install dependencies
         run: |
@@ -29,7 +31,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Automated update of GFC data and chart"
-          file_pattern: "data/*.csv chart/*.png" # Only commit the output files
+          file_pattern: "data/*.csv chart/*.png" 
           commit_user_name: "GFC Update Bot"
           commit_user_email: "actions@github.com"
           commit_author: "GFC Update Bot <actions@github.com>"
