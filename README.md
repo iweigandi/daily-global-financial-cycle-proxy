@@ -33,4 +33,4 @@ The generated data is also updated weekly and can be accessed directly:
 3.  **Validation:** The monthly proxy is statistically compared against the GFC factor of Miranda-Agrippino
 & Rey (2020). by calculating the correlation and Mean Squared Error.
 4.  **Automation:** A GitHub Action runs the entire pipeline every Monday, committing the updated data and chart back to this repository.
-5.  **Details:** For a detailed explanation of the data and methods, please see the [Methodological Note](METHODOLOGY.md).
+5.  **Details:** For a detailed explanation of the data and methods, please see the [Methodological Note](Methodology.pdf).
