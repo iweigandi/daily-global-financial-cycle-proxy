@@ -21,7 +21,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 from pandas_datareader import data as pdr
 import matplotlib.dates as mdates
-from build_note import build_markdown_note
 
 
 # --- Configuration ---
@@ -81,20 +80,21 @@ def analyze_plot_and_save(gfc_z_daily: pd.Series, gfc_z_monthly: pd.Series) -> (
 
     # 2. Create cumulative, standardized versions for comparison
     gfc_proxy_monthly = pd.DataFrame(
-        # CORRECTED: Changed --1 to -1
         StandardScaler().fit_transform(gfc_z_monthly.cumsum().values.reshape(-1, 1)),
         index=gfc_z_monthly.index, columns=['GFC Proxy-Monthly']
     )
     gfc_proxy_daily = pd.DataFrame(
-        # CORRECTED: Changed --1 to -1 (if the error was also here)
         StandardScaler().fit_transform(gfc_z_daily.cumsum().values.reshape(-1, 1)),
         index=gfc_z_daily.index, columns=['GFC Proxy-Daily']
     )
 
     # 3. Merge monthly series for statistical analysis
-    monthly_comparison = gfc_proxy_monthly.merge(gfc_mar, left_index=True, right_index=True)
+    monthly_comparison_unaligned = gfc_proxy_monthly.merge(gfc_mar, left_index=True, right_index=True, how="left")
 
-    # 4. STATISTICAL ANALYSIS: Calculate goodness-of-fit
+    # 4. Remove any rows with NaN values to align the series perfectly
+    monthly_comparison = monthly_comparison_unaligned.dropna()
+    
+    # 5. STATISTICAL ANALYSIS: Calculate goodness-of-fit
     correlation = monthly_comparison['GFC Proxy-Monthly'].corr(monthly_comparison['GFC M&R (2020)-Monthly'])
     mse = mean_squared_error(monthly_comparison['GFC M&R (2020)-Monthly'], monthly_comparison['GFC Proxy-Monthly'])
     print(f"\n--- Goodness-of-Fit (Monthly Proxy vs. Miranda-Agrippino & Rey (2020)) ---")
@@ -102,13 +102,13 @@ def analyze_plot_and_save(gfc_z_daily: pd.Series, gfc_z_monthly: pd.Series) -> (
     print(f"Mean Squared Error (MSE): {mse:.4f}")
     print("----------------------------------------------------")
 
-    # 5. Create plot with a professional style
+    # 6. Create plot with a professional style
     plt.style.use('seaborn-v0_8-whitegrid')
     fig, ax = plt.subplots(figsize=(14, 8)) 
     ax.plot(gfc_proxy_daily.index, gfc_proxy_daily['GFC Proxy-Daily'],
             label='GFC Proxy (Daily)', color='#80B1D3', linewidth=1.2, zorder=1) 
 
-    ax.plot(monthly_comparison.index, monthly_comparison['GFC Proxy-Monthly'],
+    ax.plot(monthly_comparison_unaligned.index, monthly_comparison_unaligned['GFC Proxy-Monthly'],
             label=f'GFC Proxy (Monthly) | Corr: {correlation:.2f}', color='#1F78B4', 
             linewidth=2.0, marker='o', markersize=5, zorder=3)
     
@@ -141,15 +141,17 @@ def analyze_plot_and_save(gfc_z_daily: pd.Series, gfc_z_monthly: pd.Series) -> (
     
     plt.subplots_adjust(left=0.08, right=0.95, top=0.92, bottom=0.18) 
 
-    # 6. Save outputs
+    # 7. Save outputs
     os.makedirs(os.path.dirname(CONFIG["CHART_OUTPUT_PATH"]), exist_ok=True)
     os.makedirs(os.path.dirname(CONFIG["DAILY_DATA_OUTPUT_PATH"]), exist_ok=True)
     plt.savefig(CONFIG["CHART_OUTPUT_PATH"])
     gfc_proxy_daily.to_csv(CONFIG["DAILY_DATA_OUTPUT_PATH"])
-    monthly_comparison.to_csv(CONFIG["MONTHLY_DATA_OUTPUT_PATH"])
+    gfc_proxy_monthly.to_csv(CONFIG["MONTHLY_DATA_OUTPUT_PATH"])
     print(f"\nChart saved to: {CONFIG['CHART_OUTPUT_PATH']}")
     print(f"Daily data saved to: {CONFIG['DAILY_DATA_OUTPUT_PATH']}")
     print(f"Monthly data saved to: {CONFIG['MONTHLY_DATA_OUTPUT_PATH']}")
+
+    
 
 
 def main():

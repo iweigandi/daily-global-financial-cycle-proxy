@@ -1,6 +1,6 @@
 # Real-Time Global Financial Cycle (GFC) Proxy
 
-![Update GFC Proxy Data and Chart](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/run_gfc_proxy.yml/badge.svg)
+![Update GFC Proxy Data and Chart](https://github.com/iweigandi/daily-global-financial-cycle-proxy/actions/workflows/run_gfc_proxy.yml/badge.svg)
 
 This repository contains an open-source project to automatically calculate and update daily and monthly proxies for the Global Financial Cycle. The script uses public stock market data from Stooq and is updated weekly via a GitHub Action.
 
@@ -8,9 +8,10 @@ This repository contains an open-source project to automatically calculate and u
 
 ### Live Chart
 
-This chart is automatically regenerated every week. It compares the daily and monthly proxies against a widely-used official GFC factor.
+This chart is automatically regenerated every week. It compares the daily and monthly proxies against a the GFC factor of Miranda-Agrippino
+& Rey (2020).
 
-![Live GFC Chart](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/blob/main/chart/gfc_comparison_plot.png?raw=true)
+![Live GFC Chart](https://github.com/iweigandi/daily-global-financial-cycle-proxy/blob/main/chart/gfc_comparison_plot.png?raw=true)
 
 ---
 
@@ -25,11 +26,11 @@ The generated data is also updated weekly and can be accessed directly:
 ### Methodology
 
 
-1.  **Index Discovery:** The script scrapes Stooq's "Main Indices" pages to dynamically discover a broad set of national stock market indices.
-2.  **Data Download:** It downloads daily historical price data for one representative index per country using the `pandas-datareader` library.
-3.  **Proxy Calculation:**
+1.  **Data Download:** It downloads daily historical price data for one representative index per country using the `pandas-datareader` library.
+2.  **Proxy Calculation:**
     * **Monthly Proxy:** Calculated from the first principal component (PC1) of monthly log-returns of the indices.
     * **Daily Proxy:** Calculated from the PC1 of a 21-day rolling average of daily log-returns to filter for the cyclical component.
-4.  **Validation:** The monthly proxy is statistically compared against an official GFC factor by calculating the correlation and Mean Squared Error.
-5.  **Automation:** A GitHub Action runs the entire pipeline every Monday, committing the updated data and chart back to this repository.
-6.  **Details:** For a detailed explanation of the data and methods, please see the [Methodological Note](METHODOLOGY.md).
+3.  **Validation:** The monthly proxy is statistically compared against the GFC factor of Miranda-Agrippino
+& Rey (2020). by calculating the correlation and Mean Squared Error.
+4.  **Automation:** A GitHub Action runs the entire pipeline every Monday, committing the updated data and chart back to this repository.
+5.  **Details:** For a detailed explanation of the data and methods, please see the [Methodological Note](METHODOLOGY.md).
