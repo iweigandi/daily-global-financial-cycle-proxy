@@ -1,0 +1,24 @@
+name: Compile LaTeX to PDF
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: method_note.tex
+
+      - name: Commit PDF
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Automated LaTeX to PDF compilation"
+          file_pattern: "*.pdf"
