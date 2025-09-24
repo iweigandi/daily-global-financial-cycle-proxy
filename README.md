@@ -31,6 +31,6 @@ The generated data is also updated weekly and can be accessed directly:
     * **Monthly Proxy:** Calculated from the first principal component (PC1) of monthly log-returns of the indices.
     * **Daily Proxy:** Calculated from the PC1 of a 21-day rolling average of daily log-returns to filter for the cyclical component.
 3.  **Validation:** The monthly proxy is statistically compared against the GFC factor of Miranda-Agrippino
-& Rey (2020). by calculating the correlation and Mean Squared Error.
+& Rey (2020).
 4.  **Automation:** A GitHub Action runs the entire pipeline every Monday, committing the updated data and chart back to this repository.
 5.  **Details:** For a detailed explanation of the data and methods, please see the [Methodological Note](Methodology.pdf).
