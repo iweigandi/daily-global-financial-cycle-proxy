@@ -168,7 +168,7 @@ def main():
 
     # Calculate MONTHLY proxy
     print("\nCalculating MONTHLY GFC proxy...")
-    returns_monthly = price_panel.resample('ME').last().pipe(lambda df: np.log(df / df.shift(1))).dropna()
+    returns_monthly = price_panel.resample('M').last().pipe(lambda df: np.log(df / df.shift(1))).dropna()
     gfc_z_monthly, var_exp_monthly, pca_monthly = calculate_gfc_proxy(returns_monthly)
     print(f"Monthly proxy calculated. Variance Explained: {var_exp_monthly:.2%}")
 
