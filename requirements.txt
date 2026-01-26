@@ -1,6 +1,6 @@
 numpy
-pandas
+pandas>=2.0.0
 matplotlib
 scikit-learn
-pandas-datareader
+pandas-datareader>=0.10.0
 openpyxl
