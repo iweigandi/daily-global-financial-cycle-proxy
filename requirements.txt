@@ -1,6 +1,6 @@
-numpy<2.0.0
-pandas<2.0.0
+numpy
+pandas
 matplotlib
 scikit-learn
-pandas-datareader
 openpyxl
+requests
