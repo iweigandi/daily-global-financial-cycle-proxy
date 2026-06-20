@@ -618,15 +618,39 @@ def analyze_plot_and_save(
     ax.axhline(0, color=palette[8], linestyle='--', linewidth=0.8)
 
     note = (
-        f"Source: Author's calculations using {source_note}. "
+        f"Source: Author's calculations using {source_note}.\n"
         "GFC Factor from Miranda-Agrippino \\& Rey (2020).\n"
         "Methodology based on Habib \\& Venditti (2019).\n"
         "Note: Proxies are the first principal component (PC1) of returns from a panel of global stock indices. "
         "The cumulative series are standardized for comparison.\n"
         "Data available at https://github.com/iweigandi/daily-global-financial-cycle-proxy"
         )
-    fig.text(0.08, 0.015, note, ha='left', va='bottom', fontsize=5, color=palette[8], wrap=True)
-    plt.subplots_adjust(left=0.13, right=0.97, top=0.9, bottom=0.28)
+    plt.subplots_adjust(left=0.13, right=0.97, top=0.90, bottom=0.20)
+
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+
+    tick_labels = [label for label in ax.get_xticklabels() if label.get_visible()]
+
+    lowest_tick_y = min(
+        label.get_window_extent(renderer=renderer).y0
+        for label in tick_labels
+    )
+
+    lowest_tick_y_fig = fig.transFigure.inverted().transform(
+        (0, lowest_tick_y)
+    )[1]
+
+    fig.text(
+        ax.get_position().x0,
+        lowest_tick_y_fig - 0.015,
+        note,
+        ha='left',
+        va='top',
+        fontsize=5,
+        color=palette[8],
+        wrap=True
+    )
 
     # 7. Save outputs
     os.makedirs(os.path.dirname(CONFIG["CHART_OUTPUT_PATH"]), exist_ok=True)
@@ -681,8 +705,8 @@ def main():
 
     gfc_proxy_daily, gfc_proxy_monthly, _, _ = calculate_proxy_outputs(price_panel)
     source_note = (
-        "a historical input panel (archived Stooq prices plus documented Yahoo backfills) "
-        "spliced with Yahoo Finance and public exchange APIs"
+        "Stooq and Yahoo Finance"
+
     )
     analyze_plot_and_save(gfc_proxy_daily, gfc_proxy_monthly, source_note)
 
