@@ -26,7 +26,7 @@ The generated data can be accessed directly:
 ### Methodology
 
 1. **Data:** The proxy is based on a 57-index panel of daily equity index prices covering advanced and emerging markets.
-2. **Returns:** Daily and monthly log returns are computed from closing prices. PCA is estimated on balanced return matrices.
+2. **Returns:** Daily and monthly log returns are computed from closing prices. The PCA is estimated on a balanced panel.
 3. **Proxy Calculation:** The daily and monthly proxies are defined as the first principal component (PC1) of the corresponding return panels. The cumulative factors are standardized for comparison.
 4. **Validation:** The monthly proxy is compared with the Miranda-Agrippino and Rey (2020) GFC factor.
 5. **Details:** For a fuller explanation of the data and methods, see the [Methodological Note](Methodology.pdf).
@@ -35,4 +35,4 @@ The generated data can be accessed directly:
 
 ### Replication Note
 
-The public repository contains the derived proxy series, chart, methodology note, and replication code. Raw historical price inputs are managed separately so that the public repository distributes only derived outputs.
+The public repository contains the derived proxy series, chart, methodology note, and replication code. Raw historical price inputs are managed separately in another repository, however, the underlying data can be accessed via Yahoo Finance and Stooq.
